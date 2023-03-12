@@ -18,6 +18,9 @@ app.post("/users",userCon.postUsers);
 app.get("/users/:id",userCon.getUser);
 app.delete("/users/:id",userCon.deleteUser);
 app.patch("/users/:id",userCon.patchUser);
+app.get("/finders",userCon.finders);
+app.get("/get-set-virtual",userCon.getSetVirtual);
+app.get("/validate",userCon.validateUser);
 
 app.listen(4131,()=>{
     console.log("Server up at : http://localhost:4131")
