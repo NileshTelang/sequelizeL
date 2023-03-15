@@ -30,5 +30,5 @@ db.userContacts = require("./userContacts")(sequelize,DataTypes,db.user,db.conta
 db.user.belongsToMany(db.contacts,{through :db.userContacts});
 db.contacts.belongsToMany(db.user,{through :db.userContacts});
 
-db.sequelize.sync({ force: false });
+db.sequelize.sync({ force: true});
 module.exports = db;

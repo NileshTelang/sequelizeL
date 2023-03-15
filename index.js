@@ -25,6 +25,7 @@ app.get("/raw-queries",userCon.rawQueries);
 app.get("/121",userCon.oneToOne);
 app.get("/12M",userCon.oneToMany);
 app.get("/M2M",userCon.manyToMany);
+app.get("/paranoid",userCon.paranoid);
 
 app.listen(4131,()=>{
     console.log("Server up at : http://localhost:4131")

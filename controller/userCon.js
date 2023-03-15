@@ -179,6 +179,29 @@ var manyToMany = async(req,res)=>{
     res.status(200).json( {data : data});
 }
 
+var paranoid = async(req,res)=>{
+
+    // var data = await User.create({firstName : "bite",lastName : "frost"});
+    
+    // var data = await User.destroy({
+    //     where : {
+    //         id:2
+    //     }
+    // })
+
+    // var data = await  User.restore({
+    //     where :{
+    //         id:2
+    //     }
+    // });
+    
+    var data = await User.findAll({
+        paranoid:false 
+    });
+
+    res.status(200).json( {data : data});
+}
+
 module.exports = {
     addUser,
     getUsers,
@@ -192,5 +215,6 @@ module.exports = {
     rawQueries,
     oneToOne,
     oneToMany,
-    manyToMany
+    manyToMany,
+    paranoid
 }
