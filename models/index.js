@@ -1,4 +1,4 @@
-const { Sequelize ,DataTypes,Model} = require('sequelize');
+const { Sequelize ,DataTypes,Model, QueryTypes} = require('sequelize');
 
 const sequelize = new Sequelize('sequelize', 'root', 'Trisha@41', {
     host: 'localhost',
@@ -14,10 +14,21 @@ try {
 }
 
 const db = {};
-db.Sequelize = Sequelize;
+// db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 db.user = require("./user")(sequelize,DataTypes,Model);
 db.contacts = require("./contact")(sequelize,DataTypes);
-db.sequelize.sync({ force: true });
+db.userContacts = require("./userContacts")(sequelize,DataTypes,db.user,db.contacts);
+
+// db.user.hasOne(db.contacts,{ foreignKey: 'user_id',as:'otherDetails'}); //userId => no need of foreinKey declaration
+// db.contacts.belongsTo(db.user);
+
+// db.user.hasMany(db.contacts,{ foreignKey: 'user_id',as:'otherDetails'}); //userId => no need of foreinKey declaration
+// db.contacts.belongsTo(db.user);
+
+db.user.belongsToMany(db.contacts,{through :db.userContacts});
+db.contacts.belongsToMany(db.user,{through :db.userContacts});
+
+db.sequelize.sync({ force: false });
 module.exports = db;

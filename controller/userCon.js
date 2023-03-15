@@ -1,5 +1,8 @@
 var db = require("../models");
+const {QueryTypes} = require('sequelize');
+
 const User = db.user;
+const Contact = db.contacts;
 
 var addUser = async (req, res) => {
     const jane = await User.create({ firstName: "Nova" });
@@ -118,6 +121,64 @@ var validateUser = async (req, res) => {
 
 }
 
+var rawQueries = async(req,res)=>{
+
+    //database queries (sql)
+    const users = await db.sequelize.query("SELECT * FROM `users`", { type: QueryTypes.SELECT });
+    res.status(200).json( {data : users});
+}
+
+var oneToOne = async(req,res)=>{
+
+    //database queries (sql)
+    // var data = await User.create({firstName : "bite",lastName : "frost"});
+    // if(data && data.id){
+    //     await Contact.create({phoneNumber:143,address:"abc",user_id : data.id})
+    // }
+
+    var data = await User.findAll({
+        attributes:['firstName','lastName'],
+        include : [{
+            model : Contact,
+            as:'otherDetails',
+            attributes : ['phoneNumber','address']
+        }]
+
+    });
+    res.status(200).json( {data : data});
+}
+
+var oneToMany = async(req,res)=>{
+
+    // await Contact.create({phoneNumber:143,address:"abc",user_id : 1});
+
+    var data = await User.findAll({
+        attributes:['firstName','lastName'],
+        include : [{
+            model : Contact,
+            as:'otherDetails',
+            attributes : ['phoneNumber','address']
+        }]
+    });
+    res.status(200).json( {data : data});
+}
+
+var manyToMany = async(req,res)=>{
+    // var data = await User.create({firstName : "frost",lastName : "bite"});
+    // if(data && data.id){
+    //     await Contact.create({phoneNumber:431,address:"abc"})
+    // };
+    var data = await User.findAll({
+        attributes:['firstName','lastName'],
+        include : [{
+            model : Contact,
+            attributes : ['phoneNumber','address']
+        }]   
+    });
+
+    res.status(200).json( {data : data});
+}
+
 module.exports = {
     addUser,
     getUsers,
@@ -127,5 +188,9 @@ module.exports = {
     patchUser,
     finders,
     getSetVirtual,
-    validateUser
+    validateUser,
+    rawQueries,
+    oneToOne,
+    oneToMany,
+    manyToMany
 }

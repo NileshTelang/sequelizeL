@@ -11,6 +11,7 @@ module.exports = (sequelize,DataTypes) =>  {
             type: DataTypes.STRING
             // allowNull defaults to true
         }
+        // user_id:DataTypes.INTEGER
     }, {
 
         timestamps: false
