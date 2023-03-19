@@ -1,3 +1,4 @@
+
 require("./models");
 const userCon = require("./controller/userCon")
 
@@ -28,6 +29,10 @@ app.get("/M2M",userCon.manyToMany);
 app.get("/paranoid",userCon.paranoid);
 app.get("/loading",userCon.loadingUser);
 app.get("/eagerL",userCon.eagerLoading);
+app.get("/creator",userCon.creator);
+app.get("/m-n",userCon.mnAdvanced);
+app.get("/MTMTM",userCon.manyToManyToMany);
+
 
 app.listen(4131,()=>{
     console.log("Server up at : http://localhost:4131")
