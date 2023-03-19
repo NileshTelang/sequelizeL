@@ -3,6 +3,7 @@ const {QueryTypes} = require('sequelize');
 
 const User = db.user;
 const Contact = db.contacts;
+const Education = db.educations;
 
 var addUser = async (req, res) => {
     const jane = await User.create({ firstName: "Nova" });
@@ -202,6 +203,52 @@ var paranoid = async(req,res)=>{
     res.status(200).json( {data : data});
 }
 
+var loadingUser = async (req,res)=>{
+
+    // var data = await User.create({firstName : "nova",lastName : "bite"});
+    // if(data && data.id){
+    //    await Contact.create({phoneNumber:431,address:"xuz",UserId:data.id})
+    // };
+
+    //eagerLoading
+    var data = await User.findAll({
+        attributes:['firstName','lastName'],
+        include : [{
+            model : Contact,
+            attributes : ['phoneNumber','address']
+        }]   
+    });
+
+    //lazyLoading
+    // var data = await User.findOne({
+    //     where : {
+    //         id : 2
+    //     }
+    // })
+    
+    // var contactData = data.getContacts(); lazy loading err
+
+    res.status(200).json( { data : data} );
+
+}
+
+var eagerLoading = async ( req , res)=>{
+    var data = User.findAll({
+        include : {
+            model : Contact ,
+            required : true ,
+            right : true , // no use unless it's outer join i.e. required : false
+            include : {
+                model : Education,
+                required : false,
+                right : true ,
+            }
+        }
+    })
+
+    res.status(200).json( { data : data} );
+}
+
 module.exports = {
     addUser,
     getUsers,
@@ -216,5 +263,7 @@ module.exports = {
     oneToOne,
     oneToMany,
     manyToMany,
-    paranoid
+    paranoid,
+    loadingUser,
+    eagerLoading
 }

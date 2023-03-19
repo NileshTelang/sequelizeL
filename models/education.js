@@ -1,23 +1,23 @@
 
 module.exports = (sequelize,DataTypes) =>  {
 
-    const Contact = sequelize.define('Contact', {
+    const Education = sequelize.define('educations', {
         // Model attributes are defined here
-        phoneNumber: {
-            type: DataTypes.INTEGER,
+        courseIn : {
+            type: DataTypes.STRING,
             allowNull: false
         },
-        address: {
+        yearIn: {
             type: DataTypes.STRING
             // allowNull defaults to true
         },
-        UserId : DataTypes.INTEGER
+        ContactId : DataTypes.INTEGER
         // user_id:DataTypes.INTEGER
     }, {
 
         timestamps: false
     });
 
-    return Contact;
+    return Education;
 
 }
