@@ -30,7 +30,7 @@ app.get("/paranoid",userCon.paranoid);
 app.get("/loading",userCon.loadingUser);
 app.get("/eagerL",userCon.eagerLoading);
 app.get("/creator",userCon.creator);
-app.get("/m-n",userCon.mnAdvanced);
+app.get("/m-n-adv",userCon.mnAdvanced);
 app.get("/MTMTM",userCon.manyToManyToMany);
 
 
