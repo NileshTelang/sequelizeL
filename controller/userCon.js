@@ -459,11 +459,21 @@ var subQuery = async (req, res) => {
     return post;
   }
 
-  await makePostWithReactions('Hello World', [
-      'Like', 'Angry', 'Laugh', 'Like', 'Like', 'Angry', 'Sad', 'Like'
+  await makePostWithReactions("Hello World", [
+    "Like",
+    "Angry",
+    "Laugh",
+    "Like",
+    "Like",
+    "Angry",
+    "Sad",
+    "Like",
   ]);
-  await makePostWithReactions('My Second Post', [
-      'Laugh', 'Laugh', 'Like', 'Laugh'
+  await makePostWithReactions("My Second Post", [
+    "Laugh",
+    "Laugh",
+    "Like",
+    "Laugh",
   ]);
 
   const data = await db.post.findAll({
@@ -485,6 +495,113 @@ var subQuery = async (req, res) => {
     order: [[db.sequelize.literal("laughReactionsCount"), "DESC"]],
   });
   res.status(200).json({ data: data });
+};
+
+var Image = db.image;
+var Video = db.video;
+var Comment = db.comment;
+var polyotm = async (req, res) => {
+  var imageData = await Image.create({
+    title: "First Image",
+    url: "first_url",
+  });
+  var videoData = await Video.create({
+    title: "First Video",
+    text: "My First Video",
+  });
+
+  if (imageData && imageData.id) {
+    await Comment.create({
+      title: "First Comment For Image",
+      commentableId: imageData.id,
+      commentableType: "image",
+    });
+    await Comment.create({
+      title: "Second Comment For Image",
+      commentableId: imageData.id,
+      commentableType: "image",
+    });
+  }
+
+  if (videoData && videoData.id) {
+    await Comment.create({
+      title: "First Comment For Video",
+      commentableId: videoData.id,
+      commentableType: "video",
+    });
+  }
+
+  var imageData = await Image.findAll({
+    include: [
+      {
+        model: Comment,
+      },
+    ],
+  });
+
+  var videoData = await Video.findAll({
+    include: [
+      {
+        model: Comment,
+      },
+    ],
+  });
+
+  res.status(200).json({ data: [imageData, videoData] });
+};
+
+var Tag = db.tag;
+var Tag_Taggable = db.tagTaggable;
+var polymtm = async (req, res) => {
+  var imageData = await Image.create({
+    title: "First Image",
+    url: "first_url",
+  });
+  var videoData = await Video.create({
+    title: "First Video",
+    text: "My First Video",
+  });
+  var tagData = await Tag.create({
+    name: "Roronoa",
+  });
+
+  if (tagData && tagData.id && imageData && imageData.id) {
+    await Tag_Taggable.create({
+      tagId: tagData.id,
+      taggableId: imageData.id,
+      taggableType: "image",
+    });
+  }
+
+  if (tagData && tagData.id && videoData && videoData.id) {
+    await Tag_Taggable.create({
+      tagId: tagData.id,
+      taggableId: videoData.id,
+      taggableType: "video",
+    });
+  }
+
+  var imageData = await Image.findAll({
+    include: [
+      {
+        model: Tag,
+      },
+    ],
+  });
+
+  var videoData = await Video.findAll({
+    include: [
+      {
+        model: Tag,
+      },
+    ],
+  });
+
+  var tagData = await Tag.findAll({
+    include: [Image, Video],
+  });
+
+  res.status(200).json({ data: tagData });
 };
 
 module.exports = {
@@ -512,4 +629,6 @@ module.exports = {
   hooks,
   queryInterface,
   subQuery,
+  polyotm,
+  polymtm,
 };

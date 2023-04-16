@@ -37,6 +37,8 @@ app.get("/transaction",userCon.transactionUser);
 app.get("/hooks",userCon.hooks);
 app.get("/qi",userCon.queryInterface);
 app.get("/subQ",userCon.subQuery);
+app.get("/polyotm",userCon.polyotm);
+app.get("/polymtm",userCon.polymtm);
 
 
 app.listen(4131,()=>{

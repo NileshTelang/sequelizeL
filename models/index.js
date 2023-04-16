@@ -40,6 +40,14 @@ db.userProfile = require("./userProfile")(
   db.customer,
   db.profile
 );
+db.image = require("./image")(sequelize, DataTypes, Model);
+db.video = require("./video")(sequelize, DataTypes, Model);
+db.comment = require("./comments")(sequelize, DataTypes, Model);
+db.tag = require("./tag")(sequelize, DataTypes, Model);
+db.tagTaggable = require("./tagTaggable")(sequelize, DataTypes, Model);
+
+
+
 // db.user.hasOne(db.contacts,{ foreignKey: 'user_id',as:'otherDetails'}); //userId => no need of foreinKey declaration
 // db.contacts.belongsTo(db.user);
 
@@ -119,6 +127,78 @@ db.reaction = sequelize.define('reaction', {
 
 db.post.hasMany(db.reaction);
 db.reaction.belongsTo(db.post);
+
+//polymorphic association
+var Image = db.image;
+var Video = db.video;
+var Comment = db.comment;
+
+
+//1 . onetomany
+Image.hasMany(Comment, {
+  foreignKey: 'commentableId',
+  constraints: false,
+  scope: {
+    commentableType: 'image'
+  }
+});
+Comment.belongsTo(Image, { foreignKey: 'commentableId', constraints: false });
+
+Video.hasMany(Comment, {
+  foreignKey: 'commentableId',
+  constraints: false,
+  scope: {
+    commentableType: 'video'
+  }
+});
+Comment.belongsTo(Video, { foreignKey: 'commentableId', constraints: false });
+
+
+//2 . manytomany
+var Tag = db.tag;
+var Tag_Taggable = db.tagTaggable;
+
+Image.belongsToMany(Tag, {
+  through: {
+    model: Tag_Taggable,
+    unique: false,
+    scope: {
+      taggableType: 'image'
+    }
+  },
+  foreignKey: 'taggableId',
+  constraints: false
+});
+Tag.belongsToMany(Image, {
+  through: {
+    model: Tag_Taggable,
+    unique: false
+  },
+  foreignKey: 'tagId',
+  constraints: false
+});
+
+Video.belongsToMany(Tag, {
+  through: {
+    model: Tag_Taggable,
+    unique: false,
+    scope: {
+      taggableType: 'video'
+    }
+  },
+  foreignKey: 'taggableId',
+  constraints: false,
+});
+Tag.belongsToMany(Video, {
+  through: {
+    model: Tag_Taggable,
+    unique: false
+  },
+  foreignKey: 'tagId',
+  constraints: false,
+});
+
+
 
 db.sequelize.sync({ force: true });
 module.exports = db;
