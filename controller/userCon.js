@@ -1,5 +1,5 @@
 var db = require("../models");
-const { QueryTypes } = require("sequelize");
+const { QueryTypes, DataTypes } = require("sequelize");
 
 const User = db.user;
 const Contact = db.contacts;
@@ -277,23 +277,23 @@ var creator = async (req, res) => {
 };
 
 var mnAdvanced = async (req, res) => {
-//   const result = await Customer.create(
-//     {
-//       username: "King",
-//       points: 1000,
-//       profiles: [
-//         {
-//           name: "Queen",
-//           User_Profile: {
-//             selfGranted: false,
-//           },
-//         },
-//       ],
-//     },
-//     {
-//       include: Profile,
-//     }
-//   );
+  //   const result = await Customer.create(
+  //     {
+  //       username: "King",
+  //       points: 1000,
+  //       profiles: [
+  //         {
+  //           name: "Queen",
+  //           User_Profile: {
+  //             selfGranted: false,
+  //           },
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       include: Profile,
+  //     }
+  //   );
 
   // const result = await Customer.findOne({
   //   where: { username: "King" },
@@ -310,11 +310,182 @@ var mnAdvanced = async (req, res) => {
   res.status(200).json({ data: result });
 };
 
-var manyToManyToMany = async (req,res)=>{
+var manyToManyToMany = async (req, res) => {
+  await db.player.bulkCreate([
+    { username: "s0me0ne" },
+    { username: "empty" },
+    { username: "greenhead" },
+    { username: "not_spock" },
+    { username: "bowl_of_petunias" },
+  ]);
+  await db.game.bulkCreate([
+    { name: "The Big Clash" },
+    { name: "Winter Showdown" },
+    { name: "Summer Beatdown" },
+  ]);
+  await db.team.bulkCreate([
+    { name: "The Martians" },
+    { name: "The Earthlings" },
+    { name: "The Plutonians" },
+  ]);
 
-    
-    res.status(200).json({ data: result });
-}
+  await db.gameTeam.bulkCreate([
+    { GameId: 1, TeamId: 1 }, // this GameTeam will get id 1
+    { GameId: 1, TeamId: 2 }, // this GameTeam will get id 2
+    { GameId: 2, TeamId: 1 }, // this GameTeam will get id 3
+    { GameId: 2, TeamId: 3 }, // this GameTeam will get id 4
+    { GameId: 3, TeamId: 2 }, // this GameTeam will get id 5
+    { GameId: 3, TeamId: 3 }, // this GameTeam will get id 6
+  ]);
+
+  await db.playerGameTeam.bulkCreate([
+    // In 'Winter Showdown' (i.e. GameTeamIds 3 and 4):
+    { PlayerId: 1, GameTeamId: 3 }, // s0me0ne played for The Martians
+    { PlayerId: 3, GameTeamId: 3 }, // greenhead played for The Martians
+    { PlayerId: 4, GameTeamId: 4 }, // not_spock played for The Plutonians
+    { PlayerId: 5, GameTeamId: 4 }, // bowl_of_petunias played for The Plutonians
+  ]);
+
+  const result = await db.game.findOne({
+    where: {
+      name: "Winter Showdown",
+    },
+    include: {
+      model: db.gameTeam,
+      include: [
+        {
+          model: db.player,
+          through: { attributes: [] }, // Hide unwanted `PlayerGameTeam` nested object from results
+        },
+        db.team,
+      ],
+    },
+  });
+
+  res.status(200).json({ data: result });
+};
+
+const scopes = async (req, res) => {
+  db.game.addScope("whereGame", {
+    where: {
+      name: "Winter Showdown",
+    },
+  });
+
+  db.game.addScope("include", {
+    include: {
+      model: db.gameTeam,
+      include: [
+        {
+          model: db.player,
+          through: { attributes: [] }, // Hide unwanted `PlayerGameTeam` nested object from results
+        },
+        db.team,
+      ],
+    },
+  });
+
+  const result = await db.game.scope(["whereGame", "include"]).findOne({});
+
+  res.status(200).json({ data: result });
+};
+
+var transactionUser = async (req, res) => {
+  const t = await db.sequelize.transaction();
+
+  var data = await User.create({ firstName: "nova", lastName: "bite" });
+
+  if (data && data.id) {
+    try {
+      await Contact.create({ phoneNumber: 431, address: "xuz", UserId: null });
+      await t.commit();
+    } catch (error) {
+      await t.rollback();
+      await User.destroy({
+        where: {
+          id: data.id,
+        },
+      });
+    }
+  }
+
+  res.status(200).json({ data: data });
+};
+
+var hooks = async (req, res) => {
+  var data = await User.create({
+    firstName: "nils",
+    lastName: "zoro",
+  });
+
+  res.status(200).json({ data: data });
+};
+
+var queryInterface = async (req, res) => {
+  const queryInterface = db.sequelize.getQueryInterface();
+
+  queryInterface.createTable("Person", {
+    name: DataTypes.STRING,
+    isBetaMember: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+  });
+
+  // queryInterface.addColumn('Person', 'petName', { type: DataTypes.STRING });
+
+  // queryInterface.addColumn('Person', 'foo', { type: DataTypes.STRING });
+
+  queryInterface.changeColumn("Person", "foo", {
+    type: DataTypes.FLOAT,
+    defaultValue: 3.14,
+    allowNull: false,
+  });
+
+  queryInterface.removeColumn("Person", "petName", {
+    /* query options */
+  });
+
+  res.status(200).json({ data: "Zoro" });
+};
+
+var subQuery = async (req, res) => {
+  async function makePostWithReactions(content, reactionTypes) {
+    const post = await db.post.create({ content });
+    await db.reaction.bulkCreate(
+      reactionTypes.map((type) => ({ type, postId: post.id }))
+    );
+    return post;
+  }
+
+  await makePostWithReactions('Hello World', [
+      'Like', 'Angry', 'Laugh', 'Like', 'Like', 'Angry', 'Sad', 'Like'
+  ]);
+  await makePostWithReactions('My Second Post', [
+      'Laugh', 'Laugh', 'Like', 'Laugh'
+  ]);
+
+  const data = await db.post.findAll({
+    attributes: {
+      include: [
+        [
+          db.sequelize.literal(`(
+                    SELECT COUNT(*)
+                    FROM reactions AS reaction
+                    WHERE
+                        reaction.postId = post.id
+                        AND
+                        reaction.type = "Laugh"
+                )`),
+          "laughReactionsCount",
+        ],
+      ],
+    },
+    order: [[db.sequelize.literal("laughReactionsCount"), "DESC"]],
+  });
+  res.status(200).json({ data: data });
+};
 
 module.exports = {
   addUser,
@@ -335,5 +506,10 @@ module.exports = {
   eagerLoading,
   creator,
   mnAdvanced,
-  manyToManyToMany
+  manyToManyToMany,
+  scopes,
+  transactionUser,
+  hooks,
+  queryInterface,
+  subQuery,
 };

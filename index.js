@@ -32,6 +32,11 @@ app.get("/eagerL",userCon.eagerLoading);
 app.get("/creator",userCon.creator);
 app.get("/m-n-adv",userCon.mnAdvanced);
 app.get("/MTMTM",userCon.manyToManyToMany);
+app.get("/scopes",userCon.scopes);
+app.get("/transaction",userCon.transactionUser);
+app.get("/hooks",userCon.hooks);
+app.get("/qi",userCon.queryInterface);
+app.get("/subQ",userCon.subQuery);
 
 
 app.listen(4131,()=>{

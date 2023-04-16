@@ -3,6 +3,12 @@ const { Sequelize, DataTypes, Model, QueryTypes } = require("sequelize");
 const sequelize = new Sequelize("sequelize", "root", "Trisha@41", {
   host: "localhost",
   logging: false,
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  },
   dialect: "mysql",
 });
 
@@ -64,5 +70,55 @@ db.userProfile.belongsTo(db.profile);
 // db.user.belongsToMany(db.contacts,{through :db.userContacts});
 // db.contacts.belongsToMany(db.user,{through :db.userContacts});
 
-db.sequelize.sync({ force: false });
+//manytomanytomany relationship
+db.player = sequelize.define("Player", { username: DataTypes.STRING });
+db.team = sequelize.define("Team", { name: DataTypes.STRING });
+db.game = sequelize.define("Game", { name: DataTypes.STRING });
+
+db.gameTeam = sequelize.define("GameTeam", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
+});
+db.team.belongsToMany(db.game, { through: db.gameTeam });
+db.game.belongsToMany(db.team, { through: db.gameTeam });
+db.gameTeam.belongsTo(db.game);
+db.gameTeam.belongsTo(db.team);
+db.game.hasMany(db.gameTeam);
+db.team.hasMany(db.gameTeam);
+
+// We apply a Super Many-to-Many relationship between db.player and GameTeam
+db.playerGameTeam = sequelize.define("PlayerGameTeam", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
+});
+db.player.belongsToMany(db.gameTeam, { through: db.playerGameTeam });
+db.gameTeam.belongsToMany(db.player, { through: db.playerGameTeam });
+db.playerGameTeam.belongsTo(db.player);
+db.playerGameTeam.belongsTo(db.gameTeam);
+db.player.hasMany(db.playerGameTeam);
+db.gameTeam.hasMany(db.playerGameTeam);
+
+
+//subQ
+
+db.post = sequelize.define('post', {
+  content: DataTypes.STRING
+}, { timestamps: false });
+
+db.reaction = sequelize.define('reaction', {
+  type: DataTypes.STRING
+}, { timestamps: false });
+
+db.post.hasMany(db.reaction);
+db.reaction.belongsTo(db.post);
+
+db.sequelize.sync({ force: true });
 module.exports = db;
